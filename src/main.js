@@ -41,48 +41,45 @@ function updateCardCount() {
 
 async function fetchCards() {
   try {
-    setLoading(true);
-    
-    const uniqueCards = [];
-    const cardNames = new Set();
-    const totalPages = 5; // Fetch 5 pages for a total of up to 500 cards
-    
+    setLoading(true)
+
+    const uniqueCards = []
+    const cardNames = new Set()
+    const totalPages = 5
+
     for (let page = 1; page <= totalPages; page++) {
-      const response = await fetch(`https://api.magicthegathering.io/v1/cards?pageSize=100&page=${page}`);
-      const data = await response.json();
-      
+      const response = await fetch(`https://api.magicthegathering.io/v1/cards?pageSize=100&page=${page}`)
+      const data = await response.json()
+
       if (!data.cards || data.cards.length === 0) {
-        break;
+        break
       }
-      
-      data.cards.forEach(card => {
+
+      data.cards.forEach((card) => {
         if (card.name && !cardNames.has(card.name) && card.imageUrl) {
-          cardNames.add(card.name);
-          uniqueCards.push(card);
+          cardNames.add(card.name)
+          uniqueCards.push(card)
         }
-      });
-      
+      })
+
       if (page > 1) {
-        cardsData = [...uniqueCards];
-        filteredCards = [...uniqueCards];
-        displayCards(filteredCards);
-        updateCardCount();
+        cardsData = [...uniqueCards]
+        filteredCards = [...uniqueCards]
+        displayCards(filteredCards)
+        updateCardCount()
       }
     }
-    
-    cardsData = uniqueCards;
-    filteredCards = uniqueCards;
-    
-    displayCards(filteredCards);
-    updateCardCount();
-    
-    console.log(`Loaded ${uniqueCards.length} unique cards with images`);
-    
+
+    cardsData = uniqueCards
+    filteredCards = uniqueCards
+
+    displayCards(filteredCards)
+    updateCardCount()
   } catch (error) {
-    console.error('Error fetching cards:', error);
-    cardList.innerHTML = `<li class="card-item">Error loading cards. Please try again later.</li>`;
+    console.error("Error fetching cards:", error)
+    cardList.innerHTML = `<li class="card-item">Error loading cards. Please try again later.</li>`
   } finally {
-    setLoading(false);
+    setLoading(false)
   }
 }
 
@@ -161,42 +158,44 @@ function displayCardDetails(card) {
     : ""
 
   cardDetails.innerHTML = `
-    <div class="card-frame">
-      <div class="card-inner">
-        <div class="card-front">
-          <div class="card-image-container">
-            <img src="${card.imageUrl}" alt="${card.name}" class="card-image" />
+    <div class="card-details-container">
+      <div class="card-frame">
+        <div class="card-inner">
+          <div class="card-front">
+            <div class="card-image-container">
+              <img src="${card.imageUrl}" alt="${card.name}" class="card-image" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <div class="card-info">
-      <h2 class="card-name">${card.name}</h2>
       
-      <div class="card-meta">
-        <p class="card-text"><strong>Type:</strong> ${card.type}</p>
-        <p class="card-text"><strong>Rarity:</strong> ${card.rarity}</p>
-        <p class="card-text"><strong>Set:</strong> ${card.set}</p>
-        ${manaCost}
+      <div class="card-info">
+        <h2 class="card-name">${card.name}</h2>
+        
+        <div class="card-meta">
+          <p class="card-text"><strong>Type:</strong> ${card.type}</p>
+          <p class="card-text"><strong>Rarity:</strong> ${card.rarity}</p>
+          <p class="card-text"><strong>Set:</strong> ${card.set}</p>
+          ${manaCost}
+        </div>
+        
+        <p class="card-text"><strong>Card Text:</strong><br>${cardText}</p>
+        ${flavorText}
+        
+        ${
+          card.power && card.toughness
+            ? `<p class="card-text"><strong>Power/Toughness:</strong> ${card.power}/${card.toughness}</p>`
+            : ""
+        }
+        
+        ${card.loyalty ? `<p class="card-text"><strong>Loyalty:</strong> ${card.loyalty}</p>` : ""}
+        
+        ${
+          card.purchaseUrls
+            ? `<a href="${card.purchaseUrls.tcgplayer}" target="_blank" class="card-link">Buy on TCGPlayer</a>`
+            : ""
+        }
       </div>
-      
-      <p class="card-text"><strong>Card Text:</strong><br>${cardText}</p>
-      ${flavorText}
-      
-      ${
-        card.power && card.toughness
-          ? `<p class="card-text"><strong>Power/Toughness:</strong> ${card.power}/${card.toughness}</p>`
-          : ""
-      }
-      
-      ${card.loyalty ? `<p class="card-text"><strong>Loyalty:</strong> ${card.loyalty}</p>` : ""}
-      
-      ${
-        card.purchaseUrls
-          ? `<a href="${card.purchaseUrls.tcgplayer}" target="_blank" class="card-link">Buy on TCGPlayer</a>`
-          : ""
-      }
     </div>
   `
 

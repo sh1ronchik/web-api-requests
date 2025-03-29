@@ -43,6 +43,9 @@ body {
   padding: 2rem;
   position: relative;
   z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .magical-background {
@@ -253,7 +256,7 @@ h1 {
   gap: 2rem;
   position: relative;
   z-index: 2;
-  min-height: 600px;
+  flex: 1;
 }
 
 .sidebar {
@@ -266,6 +269,8 @@ h1 {
   backdrop-filter: blur(5px);
   border: 1px solid rgba(230, 57, 70, 0.3);
   overflow: hidden;
+  height: fit-content;
+  max-height: 70vh;
 }
 
 .sidebar-header {
@@ -297,7 +302,7 @@ h1 {
 .card-list {
   list-style: none;
   padding: 0.5rem;
-  max-height: 500px;
+  max-height: calc(70vh - 50px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
@@ -414,6 +419,7 @@ h1 {
 .card-details {
   width: 65%;
   min-height: 500px;
+  max-height: 70vh;
   padding: 2rem;
   background-color: rgba(51, 51, 51, 0.7);
   border-radius: 10px;
@@ -426,9 +432,24 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) var(--card-bg-color);
+}
+
+.card-details::-webkit-scrollbar {
+  width: 8px;
+}
+
+.card-details::-webkit-scrollbar-track {
+  background: var(--card-bg-color);
+}
+
+.card-details::-webkit-scrollbar-thumb {
+  background-color: var(--accent-color);
+  border-radius: 4px;
 }
 
 .card-placeholder {
@@ -438,6 +459,7 @@ h1 {
   justify-content: center;
   opacity: 0.5;
   text-align: center;
+  height: 100%;
 }
 
 .card-placeholder-icon {
@@ -473,6 +495,13 @@ h1 {
 
 .card-details.show-card {
   justify-content: flex-start;
+}
+
+.card-details-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .card-frame {
@@ -662,14 +691,20 @@ h1 {
   
   .sidebar, .card-details {
     width: 100%;
+    max-height: none;
   }
   
   .sidebar {
     margin-bottom: 2rem;
+    max-height: 400px;
   }
   
   .card-list {
-    max-height: 300px;
+    max-height: 350px;
+  }
+  
+  .card-details {
+    max-height: 600px;
   }
 }
 

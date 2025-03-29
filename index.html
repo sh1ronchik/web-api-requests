@@ -2,17 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="/vite.svg" type="image/svg+xml" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Genshin Impact Characters</title>
-    <link rel="icon" href="/path-to-favicon.ico" />
-    <link rel="stylesheet" href="/styles.css" />
-    <script src="/index.js" defer></script>
+    <title>Magic: The Gathering Cards</title>
+    <script type="module" src="/src/main.js" defer></script>
   </head>
-  <body>
-    <div class="container">
-      <h1>Genshin Impact Characters</h1>
-      <ul class="character-list"></ul>
-      <div class="character-detail hidden"></div>
+  <body class="app-body">
+    <div id="app" class="app-container">
+      <h1 class="header">Magic: The Gathering Cards</h1>
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="Search for a card..."
+      />
+      <ul id="cardList" class="card-list"></ul>
+      <div id="cardDetails" class="card-details"></div>
     </div>
   </body>
 </html>

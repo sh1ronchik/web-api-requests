@@ -10,19 +10,87 @@
   </head>
   <body>
     <div id="app">
+      <div class="magical-background">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+      </div>
+      
       <header class="header">
-        <h1>Magic: The Gathering Card Explorer</h1>
-        <input
-          type="text"
-          id="searchInput"
-          class="search-input"
-          placeholder="Search for a card..."
-        />
+        <div class="logo-container">
+          <div class="logo-emblem"></div>
+          <div class="title-container">
+            <h1>Magic: The Gathering</h1>
+            <div class="subtitle">Card Explorer</div>
+          </div>
+        </div>
+        
+        <div class="search-container">
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search for a card..."
+          />
+          <div class="search-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+        </div>
+        
+        <div class="filter-container">
+          <select id="rarityFilter" class="filter-select">
+            <option value="">All Rarities</option>
+            <option value="Common">Common</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Rare">Rare</option>
+            <option value="Mythic">Mythic Rare</option>
+            <option value="Special">Special</option>
+          </select>
+          
+          <select id="typeFilter" class="filter-select">
+            <option value="">All Types</option>
+            <option value="Creature">Creature</option>
+            <option value="Instant">Instant</option>
+            <option value="Sorcery">Sorcery</option>
+            <option value="Artifact">Artifact</option>
+            <option value="Enchantment">Enchantment</option>
+            <option value="Planeswalker">Planeswalker</option>
+            <option value="Land">Land</option>
+          </select>
+        </div>
       </header>
+      
       <main class="main-content">
-        <ul id="cardList" class="card-list"></ul>
-        <div id="cardDetails" class="card-details"></div>
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <h3>Card Collection</h3>
+            <span id="cardCount" class="card-count">0 cards</span>
+          </div>
+          
+          <div class="card-list-container">
+            <ul id="cardList" class="card-list"></ul>
+            <div id="loadingIndicator" class="loading-indicator">
+              <div class="spinner"></div>
+              <span>Summoning cards...</span>
+            </div>
+          </div>
+        </div>
+        
+        <div id="cardDetails" class="card-details">
+          <div class="card-placeholder">
+            <div class="card-placeholder-icon"></div>
+            <p>Select a card to view details</p>
+          </div>
+        </div>
       </main>
+      
+      <footer class="footer">
+        <p>Powered by the Magic: The Gathering API</p>
+        <p>Created with ✨ arcane magic ✨</p>
+      </footer>
     </div>
   </body>
 </html>

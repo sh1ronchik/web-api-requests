@@ -5,24 +5,27 @@
     <link rel="icon" type="image/svg+xml" href="/web-api-requests/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MTG Card Explorer</title>
-    <script type="module" crossorigin src="/web-api-requests/assets/index-Cz6V_-_p.js"></script>
-    <link rel="stylesheet" crossorigin href="/web-api-requests/assets/index-DNScUUfW.css">
+    <script type="module" crossorigin src="/web-api-requests/assets/index-CjHvbHY9.js"></script>
+    <link rel="stylesheet" crossorigin href="/web-api-requests/assets/index-DTSQXMO9.css">
   </head>
   <body>
     <div id="app">
       <div class="magical-background">
-        <div class="orb orb1"></div>
-        <div class="orb orb2"></div>
-        <div class="orb orb3"></div>
+        <div class="mana-symbol mana-w"></div>
+        <div class="mana-symbol mana-u"></div>
+        <div class="mana-symbol mana-b"></div>
+        <div class="mana-symbol mana-r"></div>
+        <div class="mana-symbol mana-g"></div>
+        <div class="particles-container"></div>
       </div>
       
       <header class="header">
-        <div class="logo-container">
-          <div class="logo-emblem"></div>
-          <div class="title-container">
-            <h1>Magic: The Gathering</h1>
-            <div class="subtitle">Card Explorer</div>
-          </div>
+        <div class="planeswalker-symbol">
+          <div class="planeswalker-inner"></div>
+        </div>
+        <div class="title-container">
+          <h1 class="main-title">Magic: The Gathering</h1>
+          <div class="subtitle">Card Explorer</div>
         </div>
         
         <div class="search-container">
@@ -40,55 +43,88 @@
           </div>
         </div>
         
-        <div class="filter-container">
-          <select id="rarityFilter" class="filter-select">
-            <option value="">All Rarities</option>
-            <option value="Common">Common</option>
-            <option value="Uncommon">Uncommon</option>
-            <option value="Rare">Rare</option>
-            <option value="Mythic">Mythic Rare</option>
-            <option value="Special">Special</option>
-          </select>
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label for="rarityFilter">Rarity</label>
+            <select id="rarityFilter" class="filter-select">
+              <option value="">All Rarities</option>
+              <option value="Common">Common</option>
+              <option value="Uncommon">Uncommon</option>
+              <option value="Rare">Rare</option>
+              <option value="Mythic">Mythic Rare</option>
+              <option value="Special">Special</option>
+            </select>
+          </div>
           
-          <select id="typeFilter" class="filter-select">
-            <option value="">All Types</option>
-            <option value="Creature">Creature</option>
-            <option value="Instant">Instant</option>
-            <option value="Sorcery">Sorcery</option>
-            <option value="Artifact">Artifact</option>
-            <option value="Enchantment">Enchantment</option>
-            <option value="Planeswalker">Planeswalker</option>
-            <option value="Land">Land</option>
-          </select>
+          <div class="filter-group">
+            <label for="typeFilter">Type</label>
+            <select id="typeFilter" class="filter-select">
+              <option value="">All Types</option>
+              <option value="Creature">Creature</option>
+              <option value="Instant">Instant</option>
+              <option value="Sorcery">Sorcery</option>
+              <option value="Artifact">Artifact</option>
+              <option value="Enchantment">Enchantment</option>
+              <option value="Planeswalker">Planeswalker</option>
+              <option value="Land">Land</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label for="sortFilter">Sort By</label>
+            <select id="sortFilter" class="filter-select">
+              <option value="name">Name</option>
+              <option value="type">Type</option>
+              <option value="rarity">Rarity</option>
+              <option value="cmc">Mana Value</option>
+            </select>
+          </div>
         </div>
       </header>
       
       <main class="main-content">
-        <div class="sidebar">
-          <div class="sidebar-header">
-            <h3>Card Collection</h3>
-            <span id="cardCount" class="card-count">0 cards</span>
+        <div class="card-collection">
+          <div class="collection-header">
+            <h2>Card Collection</h2>
+            <div id="cardCount" class="card-count">0 cards</div>
           </div>
           
-          <div class="card-list-container">
-            <ul id="cardList" class="card-list"></ul>
+          <div class="card-grid-container">
             <div id="loadingIndicator" class="loading-indicator">
-              <div class="spinner"></div>
-              <span>Summoning cards...</span>
+              <div class="loading-spinner">
+                <div class="spinner-segment"></div>
+                <div class="spinner-segment"></div>
+                <div class="spinner-segment"></div>
+                <div class="spinner-segment"></div>
+                <div class="spinner-segment"></div>
+              </div>
+              <span>Summoning cards from the multiverse...</span>
             </div>
+            
+            <div id="cardGrid" class="card-grid"></div>
           </div>
         </div>
         
-        <div id="cardDetails" class="card-details">
-          <div class="card-placeholder">
+        <div id="cardViewer" class="card-viewer">
+          <div class="card-viewer-placeholder">
             <div class="card-placeholder-icon"></div>
             <p>Select a card to view details</p>
           </div>
         </div>
       </main>
       
+      <div id="cardModal" class="card-modal">
+        <div class="card-modal-content">
+          <div class="card-modal-close">&times;</div>
+          <div id="cardModalContent"></div>
+        </div>
+      </div>
+      
       <footer class="footer">
-        <p>Powered by the Magic: The Gathering API</p>
+        <div class="footer-content">
+          <p>Powered by the Magic: The Gathering API</p>
+          <p class="footer-divider">•</p>
+        </div>
       </footer>
     </div>
   </body>

@@ -13,7 +13,7 @@ async function fetchCards() {
     displayCards(cardsData);
   } catch (error) {
     console.error('Error fetching cards:', error);
-    cardList.innerHTML = `<li>Error loading cards.</li>`;
+    cardList.innerHTML = `<li class="card-item">Error loading cards.</li>`;
   }
 }
 
@@ -37,24 +37,22 @@ function displayCardDetails(card) {
   cardDetails.innerHTML = `
     <h2 class="card-name">${card.name}</h2>
     ${card.imageUrl ? `<img src="${card.imageUrl}" alt="${card.name}" class="card-image" />` : ''}
-    <p class="card-text"><strong>Set:</strong> ${card.setName}</p>
-    <p class="card-text"><strong>Type:</strong> ${card.type}</p>
+    <p class="card-text"><strong>Set:</strong> ${card.set}</p>
     <p class="card-text"><strong>Rarity:</strong> ${card.rarity}</p>
-    <p class="card-text"><strong>Mana Cost:</strong> ${card.manaCost || 'N/A'}</p>
-    <p class="card-text"><strong>Text:</strong> ${card.text || 'N/A'}</p>
-    <p class="card-text"><strong>Flavor:</strong> ${card.flavor || 'N/A'}</p>
-    <p class="card-text"><strong>Power/Toughness:</strong> ${card.power ? `${card.power}/${card.toughness}` : 'N/A'}</p>
-    <p class="card-text"><strong>Artist:</strong> ${card.artist}</p>
-    <p><a href="${card.imageUrl}" target="_blank" class="card-link">View Card Image</a></p>
+    <p class="card-text"><strong>Type:</strong> ${card.type}</p>
+    <p class="card-text"><strong>Text:</strong> ${card.text}</p>
+    ${card.purchaseUrls ? `<p class="card-text"><a href="${card.purchaseUrls.tcgplayer}" target="_blank" class="card-link">Buy on TCGPlayer</a></p>` : ''}
   `;
+  cardDetails.classList.add('show');
 }
 
-searchInput.addEventListener('input', function () {
-  const filter = searchInput.value.toLowerCase();
+searchInput.addEventListener('input', (event) => {
+  const query = event.target.value.toLowerCase();
   const filteredCards = cardsData.filter((card) =>
-    card.name.toLowerCase().includes(filter)
+    card.name.toLowerCase().includes(query)
   );
   displayCards(filteredCards);
 });
 
+// Initialize the app by fetching and displaying cards
 fetchCards();

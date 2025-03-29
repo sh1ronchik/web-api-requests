@@ -1,17 +1,24 @@
+// DOM Elements
 const app = document.querySelector("#app")
 const searchInput = app.querySelector("#searchInput")
-const cardList = app.querySelector("#cardList")
-const cardDetails = app.querySelector("#cardDetails")
+const cardGrid = app.querySelector("#cardGrid")
+const cardViewer = app.querySelector("#cardViewer")
 const loadingIndicator = app.querySelector("#loadingIndicator")
 const cardCount = app.querySelector("#cardCount")
 const rarityFilter = app.querySelector("#rarityFilter")
 const typeFilter = app.querySelector("#typeFilter")
+const sortFilter = app.querySelector("#sortFilter")
+const cardModal = app.querySelector("#cardModal")
+const cardModalContent = app.querySelector("#cardModalContent")
+const cardModalClose = app.querySelector(".card-modal-close")
 
+// State
 let cardsData = []
 let filteredCards = []
 let selectedCardId = null
 let isLoading = false
 
+// Helper Functions
 function getRarityClass(rarity) {
   if (!rarity) return ""
 
@@ -24,6 +31,47 @@ function getRarityClass(rarity) {
   if (rarityLower.includes("special")) return "rarity-special"
 
   return ""
+}
+
+function getRarityColor(rarity) {
+  if (!rarity) return "var(--common-color)"
+
+  const rarityLower = rarity.toLowerCase()
+
+  if (rarityLower.includes("common")) return "var(--common-color)"
+  if (rarityLower.includes("uncommon")) return "var(--uncommon-color)"
+  if (rarityLower.includes("rare") && !rarityLower.includes("mythic")) return "var(--rare-color)"
+  if (rarityLower.includes("mythic")) return "var(--mythic-color)"
+  if (rarityLower.includes("special")) return "var(--special-color)"
+
+  return "var(--common-color)"
+}
+
+function getCardFrameStyle(card) {
+  if (!card.colors || card.colors.length === 0) {
+    return "var(--colorless-frame)"
+  }
+
+  if (card.colors.length > 1) {
+    return "var(--multicolor-frame)"
+  }
+
+  const color = card.colors[0].toLowerCase()
+
+  switch (color) {
+    case "white":
+      return "var(--white-frame)"
+    case "blue":
+      return "var(--blue-frame)"
+    case "black":
+      return "var(--black-frame)"
+    case "red":
+      return "var(--red-frame)"
+    case "green":
+      return "var(--green-frame)"
+    default:
+      return "var(--colorless-frame)"
+  }
 }
 
 function setLoading(loading) {
@@ -39,6 +87,42 @@ function updateCardCount() {
   cardCount.textContent = `${filteredCards.length} cards`
 }
 
+function createParticles() {
+  const particlesContainer = document.querySelector(".particles-container")
+  const particleCount = 30
+
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement("div")
+    particle.classList.add("particle")
+
+    const size = Math.random() * 5 + 2
+    const duration = Math.random() * 20 + 10
+    const delay = Math.random() * 10
+    const colorIndex = Math.floor(Math.random() * 5)
+    const colors = [
+      "var(--white-mana)",
+      "var(--blue-mana)",
+      "var(--black-mana)",
+      "var(--red-mana)",
+      "var(--green-mana)",
+    ]
+
+    particle.style.width = `${size}px`
+    particle.style.height = `${size}px`
+    particle.style.left = `${Math.random() * 100}%`
+    particle.style.bottom = `-${size}px`
+    particle.style.backgroundColor = colors[colorIndex]
+    particle.style.opacity = "0"
+    particle.style.borderRadius = "50%"
+    particle.style.position = "absolute"
+    particle.style.boxShadow = `0 0 ${size * 2}px ${colors[colorIndex]}`
+    particle.style.animation = `particle-float ${duration}s linear ${delay}s infinite`
+
+    particlesContainer.appendChild(particle)
+  }
+}
+
+// API Functions
 async function fetchCards() {
   try {
     setLoading(true)
@@ -73,133 +157,228 @@ async function fetchCards() {
     cardsData = uniqueCards
     filteredCards = uniqueCards
 
+    sortCards()
     displayCards(filteredCards)
     updateCardCount()
   } catch (error) {
     console.error("Error fetching cards:", error)
-    cardList.innerHTML = `<li class="card-item">Error loading cards. Please try again later.</li>`
+    cardGrid.innerHTML = `<div class="error-message">Error loading cards. Please try again later.</div>`
   } finally {
     setLoading(false)
   }
 }
 
+// UI Functions
 function displayCards(cards) {
-  cardList.innerHTML = ""
+  cardGrid.innerHTML = ""
 
   cards.forEach((card, index) => {
-    const li = document.createElement("li")
-    li.classList.add("card-item")
-    li.style.setProperty("--index", index)
+    const cardElement = document.createElement("div")
+    cardElement.classList.add("card-item")
+    cardElement.style.setProperty("--index", index)
 
     const rarityClass = getRarityClass(card.rarity)
-    if (rarityClass) {
-      li.classList.add(rarityClass)
-    }
+    const rarityColor = getRarityColor(card.rarity)
 
-    if (selectedCardId === card.id) {
-      li.classList.add("active")
-    }
-
-    li.innerHTML = `
-      <div class="card-item-name">${card.name}</div>
-      <div class="card-item-type">${card.type}</div>
-      <div class="card-item-rarity">${card.rarity || "Unknown Rarity"}</div>
+    cardElement.innerHTML = `
+      <div class="card-image-container">
+        <img src="${card.imageUrl}" alt="${card.name}" class="card-image" loading="lazy" />
+      </div>
+      <div class="card-overlay">
+        <div class="card-name">${card.name}</div>
+        <div class="card-type">${card.type}</div>
+        <div class="card-rarity">
+          <span class="card-rarity-indicator" style="background-color: ${rarityColor}"></span>
+          ${card.rarity || "Unknown"}
+        </div>
+      </div>
     `
 
-    li.addEventListener("click", () => {
-      document.querySelectorAll(".card-item").forEach((item) => {
-        item.classList.remove("active")
-      })
-
-      li.classList.add("active")
-
+    cardElement.addEventListener("click", () => {
       displayCardDetails(card)
       selectedCardId = card.id
+
+      // Scroll to card viewer
+      cardViewer.scrollIntoView({ behavior: "smooth" })
     })
 
-    cardList.appendChild(li)
+    cardGrid.appendChild(cardElement)
   })
 }
 
 function displayCardDetails(card) {
-  cardDetails.classList.add("card-flip")
+  const frameStyle = getCardFrameStyle(card)
+  const rarityColor = getRarityColor(card.rarity)
 
-  setTimeout(() => {
-    cardDetails.classList.remove("card-flip")
-  }, 600)
+  // Create enhanced card showcase
+  const cardText = card.text ? card.text.replace(/\n/g, "<br>") : "No card text available"
+  const flavorText = card.flavor ? `<div class="card-flavor-text">${card.flavor}</div>` : ""
 
-  const rarityClass = getRarityClass(card.rarity)
-  let borderColor = "var(--accent-color)"
+  // Create meta items
+  let metaItems = ""
 
-  switch (rarityClass) {
-    case "rarity-common":
-      borderColor = "var(--common-color)"
-      break
-    case "rarity-uncommon":
-      borderColor = "var(--uncommon-color)"
-      break
-    case "rarity-rare":
-      borderColor = "var(--rare-color)"
-      break
-    case "rarity-mythic":
-      borderColor = "var(--mythic-color)"
-      break
-    case "rarity-special":
-      borderColor = "var(--special-color)"
-      break
+  if (card.manaCost) {
+    metaItems += `
+      <div class="card-meta-item">
+        <div class="card-meta-label">Mana Cost</div>
+        <div class="card-meta-value">${card.manaCost}</div>
+      </div>
+    `
   }
 
-  const manaCost = card.manaCost ? `<p class="card-text"><strong>Mana Cost:</strong> ${card.manaCost}</p>` : ""
+  if (card.rarity) {
+    metaItems += `
+      <div class="card-meta-item">
+        <div class="card-meta-label">Rarity</div>
+        <div class="card-meta-value">${card.rarity}</div>
+      </div>
+    `
+  }
 
-  const cardText = card.text ? card.text.replace(/\n/g, "<br>") : "No card text available"
+  if (card.set) {
+    metaItems += `
+      <div class="card-meta-item">
+        <div class="card-meta-label">Set</div>
+        <div class="card-meta-value">${card.setName} (${card.set})</div>
+      </div>
+    `
+  }
 
-  const flavorText = card.flavor
-    ? `<p class="card-text" style="font-style: italic; color: #ccc;">"${card.flavor}"</p>`
-    : ""
+  if (card.power && card.toughness) {
+    metaItems += `
+      <div class="card-meta-item">
+        <div class="card-meta-label">Power/Toughness</div>
+        <div class="card-meta-value">${card.power}/${card.toughness}</div>
+      </div>
+    `
+  }
 
-  cardDetails.innerHTML = `
-    <div class="card-details-container">
-      <div class="card-frame">
-        <div class="card-inner">
-          <div class="card-front">
-            <div class="card-image-container">
-              <img src="${card.imageUrl}" alt="${card.name}" class="card-image" />
+  if (card.loyalty) {
+    metaItems += `
+      <div class="card-meta-item">
+        <div class="card-meta-label">Loyalty</div>
+        <div class="card-meta-value">${card.loyalty}</div>
+      </div>
+    `
+  }
+
+  if (card.artist) {
+    metaItems += `
+      <div class="card-meta-item">
+        <div class="card-meta-label">Artist</div>
+        <div class="card-meta-value">${card.artist}</div>
+      </div>
+    `
+  }
+
+  // Create action buttons
+  let actionButtons = `
+    <button class="card-action-button" onclick="openCardModal('${card.id}')">
+      <svg class="card-action-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h6v6M14 10l6-6M9 21H3v-6M10 14l-6 6"/>
+      </svg>
+      View Full Size
+    </button>
+  `
+
+  if (card.purchaseUrls && card.purchaseUrls.tcgplayer) {
+    actionButtons += `
+      <a href="${card.purchaseUrls.tcgplayer}" target="_blank" class="card-action-button">
+        <svg class="card-action-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/>
+          <circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        Buy on TCGPlayer
+      </a>
+    `
+  }
+
+  // Create the enhanced card showcase
+  cardViewer.innerHTML = `
+    <div class="card-showcase">
+      <div class="card-showcase-header">
+        <div class="card-showcase-bg" style="background-image: url(${card.imageUrl})"></div>
+        <div class="card-showcase-title">
+          <h1 class="card-name-display" style="color: ${rarityColor}">${card.name}</h1>
+          <div class="card-type-display">${card.type}</div>
+        </div>
+      </div>
+      
+      <div class="card-showcase-content">
+        <div class="card-showcase-image">
+          <div class="card-frame-3d">
+            <div class="card-frame-inner" style="background: ${frameStyle}">
+              <img src="${card.imageUrl}" alt="${card.name}" class="card-frame-img" />
+            </div>
+            <div class="card-frame-glow"></div>
+          </div>
+        </div>
+        
+        <div class="card-showcase-info">
+          <div class="card-info-section">
+            <h3>Card Text</h3>
+            <div class="card-text-content">${cardText}</div>
+            ${flavorText}
+          </div>
+          
+          <div class="card-info-section">
+            <h3>Card Details</h3>
+            <div class="card-meta-grid">
+              ${metaItems}
             </div>
           </div>
         </div>
       </div>
-      
-      <div class="card-info">
-        <h2 class="card-name">${card.name}</h2>
-        
-        <div class="card-meta">
-          <p class="card-text"><strong>Type:</strong> ${card.type}</p>
-          <p class="card-text"><strong>Rarity:</strong> ${card.rarity}</p>
-          <p class="card-text"><strong>Set:</strong> ${card.set}</p>
-          ${manaCost}
-        </div>
-        
-        <p class="card-text"><strong>Card Text:</strong><br>${cardText}</p>
-        ${flavorText}
-        
-        ${
-          card.power && card.toughness
-            ? `<p class="card-text"><strong>Power/Toughness:</strong> ${card.power}/${card.toughness}</p>`
-            : ""
-        }
-        
-        ${card.loyalty ? `<p class="card-text"><strong>Loyalty:</strong> ${card.loyalty}</p>` : ""}
-        
-        ${
-          card.purchaseUrls
-            ? `<a href="${card.purchaseUrls.tcgplayer}" target="_blank" class="card-link">Buy on TCGPlayer</a>`
-            : ""
-        }
-      </div>
     </div>
   `
 
-  cardDetails.classList.add("show-card")
+  // Add floating animation to the card
+  const cardFrame = cardViewer.querySelector(".card-frame-3d")
+  if (cardFrame) {
+    cardFrame.style.animation = "floatCard 5s ease-in-out infinite"
+  }
+}
+
+function openCardModal(cardId) {
+  const card = cardsData.find((c) => c.id === cardId)
+
+  if (!card) return
+
+  cardModalContent.innerHTML = `
+    <img src="${card.imageUrl}" alt="${card.name}" style="max-width: 100%; max-height: 80vh; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);" />
+    <h2 style="margin-top: 1.5rem; text-align: center; font-family: 'Beleren', 'Garamond', serif; color: var(--gold-accent);">${card.name}</h2>
+  `
+
+  cardModal.classList.add("show")
+  document.body.style.overflow = "hidden"
+}
+
+function closeCardModal() {
+  cardModal.classList.remove("show")
+  document.body.style.overflow = ""
+}
+
+function sortCards() {
+  const sortBy = sortFilter.value
+
+  filteredCards.sort((a, b) => {
+    switch (sortBy) {
+      case "name":
+        return a.name.localeCompare(b.name)
+      case "type":
+        return a.type.localeCompare(b.type)
+      case "rarity":
+        const rarityOrder = { Common: 1, Uncommon: 2, Rare: 3, "Mythic Rare": 4, Special: 5 }
+        return (rarityOrder[a.rarity] || 0) - (rarityOrder[b.rarity] || 0)
+      case "cmc":
+        return (a.cmc || 0) - (b.cmc || 0)
+      default:
+        return a.name.localeCompare(b.name)
+    }
+  })
+
+  displayCards(filteredCards)
 }
 
 function filterCards() {
@@ -220,28 +399,66 @@ function filterCards() {
     return matchesSearch && matchesRarity && matchesType
   })
 
-  displayCards(filteredCards)
+  sortCards()
   updateCardCount()
 }
 
+// Event Listeners
 searchInput.addEventListener("input", filterCards)
 rarityFilter.addEventListener("change", filterCards)
 typeFilter.addEventListener("change", filterCards)
+sortFilter.addEventListener("change", sortCards)
+cardModalClose.addEventListener("click", closeCardModal)
 
+// Close modal when clicking outside content
+cardModal.addEventListener("click", (e) => {
+  if (e.target === cardModal) {
+    closeCardModal()
+  }
+})
+
+// Close modal with Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && cardModal.classList.contains("show")) {
+    closeCardModal()
+  }
+})
+
+// Make openCardModal available globally
+window.openCardModal = openCardModal
+
+// Initialize the app
 document.addEventListener("DOMContentLoaded", () => {
   setLoading(true)
 
-  cardDetails.innerHTML = `
-    <div class="card-placeholder">
+  cardViewer.innerHTML = `
+    <div class="card-viewer-placeholder">
       <div class="card-placeholder-icon"></div>
       <p>Select a card to view details</p>
     </div>
   `
 
+  createParticles()
   fetchCards()
 
-  const orbs = document.querySelectorAll(".orb")
-  orbs.forEach((orb) => {
-    orb.style.animationDuration = `${20 + Math.random() * 10}s`
-  })
+  // Add hover effects to mana pentagram
+  const manaPentagram = document.querySelector(".mana-pentagram")
+  const manaIcons = document.querySelectorAll(".mana-icon")
+
+  if (manaPentagram) {
+    manaPentagram.addEventListener("mouseover", () => {
+      manaIcons.forEach((icon, index) => {
+        setTimeout(() => {
+          icon.style.transform = icon.classList.contains("mana-white") ? "translateX(-50%) scale(1.2)" : "scale(1.2)"
+        }, index * 100)
+      })
+    })
+
+    manaPentagram.addEventListener("mouseout", () => {
+      manaIcons.forEach((icon) => {
+        icon.style.transform = icon.classList.contains("mana-white") ? "translateX(-50%)" : ""
+      })
+    })
+  }
 })
+

@@ -11,12 +11,16 @@ const sortFilter = app.querySelector("#sortFilter")
 const cardModal = app.querySelector("#cardModal")
 const cardModalContent = app.querySelector("#cardModalContent")
 const cardModalClose = app.querySelector(".card-modal-close")
+const loadMoreBtn = app.querySelector("#loadMoreBtn")
 
 // State
 let cardsData = []
 let filteredCards = []
+let displayedCards = []
 let selectedCardId = null
 let isLoading = false
+let currentPage = 1
+const cardsPerPage = 20
 
 // Helper Functions
 function getRarityClass(rarity) {
@@ -122,6 +126,26 @@ function createParticles() {
   }
 }
 
+// Parse mana cost into HTML with symbols
+function parseManaSymbols(manaCost) {
+  if (!manaCost) return ""
+
+  // Replace mana symbols with styled spans
+  return manaCost.replace(/\{([^}]+)\}/g, (match, symbol) => {
+    const symbolLower = symbol.toLowerCase()
+    let colorClass = ""
+
+    if (symbolLower === "w") colorClass = "mana-w-icon"
+    else if (symbolLower === "u") colorClass = "mana-u-icon"
+    else if (symbolLower === "b") colorClass = "mana-b-icon"
+    else if (symbolLower === "r") colorClass = "mana-r-icon"
+    else if (symbolLower === "g") colorClass = "mana-g-icon"
+    else colorClass = "mana-c-icon"
+
+    return `<span class="mana-symbol-icon ${colorClass}" title="${symbol}"></span>`
+  })
+}
+
 // API Functions
 async function fetchCards() {
   try {
@@ -149,7 +173,8 @@ async function fetchCards() {
       if (page > 1) {
         cardsData = [...uniqueCards]
         filteredCards = [...uniqueCards]
-        displayCards(filteredCards)
+        sortCards()
+        loadMoreCards()
         updateCardCount()
       }
     }
@@ -158,7 +183,7 @@ async function fetchCards() {
     filteredCards = uniqueCards
 
     sortCards()
-    displayCards(filteredCards)
+    loadMoreCards(true)
     updateCardCount()
   } catch (error) {
     console.error("Error fetching cards:", error)
@@ -175,6 +200,7 @@ function displayCards(cards) {
   cards.forEach((card, index) => {
     const cardElement = document.createElement("div")
     cardElement.classList.add("card-item")
+    cardElement.dataset.cardId = card.id
     cardElement.style.setProperty("--index", index)
 
     const rarityClass = getRarityClass(card.rarity)
@@ -195,23 +221,70 @@ function displayCards(cards) {
     `
 
     cardElement.addEventListener("click", () => {
+      document.querySelectorAll(".card-item").forEach((item) => {
+        item.classList.remove("selected")
+      })
+      cardElement.classList.add("selected")
+
       displayCardDetails(card)
       selectedCardId = card.id
-
-      // Scroll to card viewer
-      cardViewer.scrollIntoView({ behavior: "smooth" })
     })
 
     cardGrid.appendChild(cardElement)
   })
+
+  // Add entrance animations
+  setTimeout(() => {
+    document.querySelectorAll(".card-item").forEach((card, index) => {
+      card.style.animation = `fadeIn 0.5s ease-out ${index * 0.03}s both`
+    })
+  }, 100)
+}
+
+function loadMoreCards(reset = false) {
+  if (reset) {
+    displayedCards = []
+    currentPage = 1
+  }
+
+  const startIndex = (currentPage - 1) * cardsPerPage
+  const endIndex = startIndex + cardsPerPage
+  const newCards = filteredCards.slice(startIndex, endIndex)
+
+  displayedCards = [...displayedCards, ...newCards]
+  displayCards(displayedCards)
+
+  // Hide load more button if all cards are displayed
+  if (displayedCards.length >= filteredCards.length) {
+    loadMoreBtn.style.display = "none"
+  } else {
+    loadMoreBtn.style.display = "block"
+  }
+
+  currentPage++
 }
 
 function displayCardDetails(card) {
   const frameStyle = getCardFrameStyle(card)
   const rarityColor = getRarityColor(card.rarity)
 
-  // Create enhanced card showcase
-  const cardText = card.text ? card.text.replace(/\n/g, "<br>") : "No card text available"
+  // Process card text with mana symbols
+  const cardText = card.text
+    ? card.text.replace(/\n/g, "<br>").replace(/\{([^}]+)\}/g, (match, symbol) => {
+        const symbolLower = symbol.toLowerCase()
+        let colorClass = ""
+
+        if (symbolLower === "w") colorClass = "mana-w-icon"
+        else if (symbolLower === "u") colorClass = "mana-u-icon"
+        else if (symbolLower === "b") colorClass = "mana-b-icon"
+        else if (symbolLower === "r") colorClass = "mana-r-icon"
+        else if (symbolLower === "g") colorClass = "mana-g-icon"
+        else colorClass = "mana-c-icon"
+
+        return `<span class="mana-symbol-icon ${colorClass}" title="${symbol}"></span>`
+      })
+    : "No card text available"
+
   const flavorText = card.flavor ? `<div class="card-flavor-text">${card.flavor}</div>` : ""
 
   // Create meta items
@@ -221,7 +294,7 @@ function displayCardDetails(card) {
     metaItems += `
       <div class="card-meta-item">
         <div class="card-meta-label">Mana Cost</div>
-        <div class="card-meta-value">${card.manaCost}</div>
+        <div class="card-meta-value">${parseManaSymbols(card.manaCost)}</div>
       </div>
     `
   }
@@ -230,7 +303,7 @@ function displayCardDetails(card) {
     metaItems += `
       <div class="card-meta-item">
         <div class="card-meta-label">Rarity</div>
-        <div class="card-meta-value">${card.rarity}</div>
+        <div class="card-meta-value" style="color: ${rarityColor}">${card.rarity}</div>
       </div>
     `
   }
@@ -287,7 +360,7 @@ function displayCardDetails(card) {
         <svg class="card-action-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="9" cy="21" r="1"/>
           <circle cx="20" cy="21" r="1"/>
-          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 2 1.61h9.72a2 2 0 0 2-1.61L23 6H6"/>
         </svg>
         Buy on TCGPlayer
       </a>
@@ -296,26 +369,28 @@ function displayCardDetails(card) {
 
   // Create the enhanced card showcase
   cardViewer.innerHTML = `
-    <div class="card-showcase">
-      <div class="card-showcase-header">
-        <div class="card-showcase-bg" style="background-image: url(${card.imageUrl})"></div>
-        <div class="card-showcase-title">
+    <div class="card-detail-container">
+      <div class="card-detail-header">
+        <div class="card-detail-bg" style="background-image: url(${card.imageUrl})"></div>
+        <div class="card-detail-title">
           <h1 class="card-name-display" style="color: ${rarityColor}">${card.name}</h1>
           <div class="card-type-display">${card.type}</div>
         </div>
       </div>
       
-      <div class="card-showcase-content">
-        <div class="card-showcase-image">
-          <div class="card-frame-3d">
-            <div class="card-frame-inner" style="background: ${frameStyle}">
-              <img src="${card.imageUrl}" alt="${card.name}" class="card-frame-img" />
+      <div class="card-detail-body">
+        <div class="card-detail-image-wrapper">
+          <div class="card-detail-image">
+            <div class="card-frame-3d">
+              <div class="card-frame-inner" style="background: ${frameStyle}">
+                <img src="${card.imageUrl}" alt="${card.name}" class="card-frame-img" />
+              </div>
+              <div class="card-frame-glow"></div>
             </div>
-            <div class="card-frame-glow"></div>
           </div>
         </div>
         
-        <div class="card-showcase-info">
+        <div class="card-detail-info">
           <div class="card-info-section">
             <h3>Card Text</h3>
             <div class="card-text-content">${cardText}</div>
@@ -328,6 +403,13 @@ function displayCardDetails(card) {
               ${metaItems}
             </div>
           </div>
+          
+          <div class="card-info-section">
+            <h3>Actions</h3>
+            <div class="card-actions">
+              ${actionButtons}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -338,6 +420,31 @@ function displayCardDetails(card) {
   if (cardFrame) {
     cardFrame.style.animation = "floatCard 5s ease-in-out infinite"
   }
+
+  // Add hover effect for card text
+  const cardTextContent = cardViewer.querySelector(".card-text-content")
+  if (cardTextContent) {
+    cardTextContent.addEventListener("mouseover", () => {
+      cardTextContent.style.transform = "scale(1.02)"
+      cardTextContent.style.transition = "transform 0.3s ease"
+    })
+
+    cardTextContent.addEventListener("mouseout", () => {
+      cardTextContent.style.transform = "scale(1)"
+    })
+  }
+
+  // Add hover effects to card info sections
+  const infoSections = cardViewer.querySelectorAll(".card-info-section")
+  infoSections.forEach((section) => {
+    section.addEventListener("mouseenter", () => {
+      section.style.borderLeftWidth = "5px"
+    })
+
+    section.addEventListener("mouseleave", () => {
+      section.style.borderLeftWidth = "3px"
+    })
+  })
 }
 
 function openCardModal(cardId) {
@@ -345,18 +452,45 @@ function openCardModal(cardId) {
 
   if (!card) return
 
+  const frameStyle = getCardFrameStyle(card)
+
   cardModalContent.innerHTML = `
-    <img src="${card.imageUrl}" alt="${card.name}" style="max-width: 100%; max-height: 80vh; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);" />
-    <h2 style="margin-top: 1.5rem; text-align: center; font-family: 'Beleren', 'Garamond', serif; color: var(--gold-accent);">${card.name}</h2>
+    <div class="modal-card-container">
+      <img src="${card.imageUrl}" alt="${card.name}" style="max-width: 100%; max-height: 80vh; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);" />
+      <h2 style="margin-top: 1.5rem; text-align: center; font-family: 'Beleren', 'Garamond', serif; color: var(--gold-accent);">${card.name}</h2>
+    </div>
   `
+
+  // Add entrance animation
+  const modalCard = cardModalContent.querySelector(".modal-card-container")
+  modalCard.style.opacity = "0"
+  modalCard.style.transform = "scale(0.9) translateY(20px)"
+  modalCard.style.transition = "opacity 0.5s ease, transform 0.5s ease"
 
   cardModal.classList.add("show")
   document.body.style.overflow = "hidden"
+
+  setTimeout(() => {
+    modalCard.style.opacity = "1"
+    modalCard.style.transform = "scale(1) translateY(0)"
+  }, 50)
 }
 
 function closeCardModal() {
-  cardModal.classList.remove("show")
-  document.body.style.overflow = ""
+  const modalCard = cardModalContent.querySelector(".modal-card-container")
+
+  if (modalCard) {
+    modalCard.style.opacity = "0"
+    modalCard.style.transform = "scale(0.9) translateY(20px)"
+
+    setTimeout(() => {
+      cardModal.classList.remove("show")
+      document.body.style.overflow = ""
+    }, 300)
+  } else {
+    cardModal.classList.remove("show")
+    document.body.style.overflow = ""
+  }
 }
 
 function sortCards() {
@@ -378,7 +512,7 @@ function sortCards() {
     }
   })
 
-  displayCards(filteredCards)
+  loadMoreCards(true)
 }
 
 function filterCards() {
@@ -408,6 +542,7 @@ searchInput.addEventListener("input", filterCards)
 rarityFilter.addEventListener("change", filterCards)
 typeFilter.addEventListener("change", filterCards)
 sortFilter.addEventListener("change", sortCards)
+loadMoreBtn.addEventListener("click", () => loadMoreCards())
 cardModalClose.addEventListener("click", closeCardModal)
 
 // Close modal when clicking outside content
@@ -441,22 +576,19 @@ document.addEventListener("DOMContentLoaded", () => {
   createParticles()
   fetchCards()
 
-  // Add hover effects to mana pentagram
-  const manaPentagram = document.querySelector(".mana-pentagram")
-  const manaIcons = document.querySelectorAll(".mana-icon")
+  // Add scroll animation for card grid
+  const cardGridContainer = document.querySelector(".card-grid-container")
+  if (cardGridContainer) {
+    cardGridContainer.addEventListener("scroll", () => {
+      const cards = document.querySelectorAll(".card-item")
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect()
+        const isVisible = rect.top < window.innerHeight && rect.bottom > 0
 
-  if (manaPentagram) {
-    manaPentagram.addEventListener("mouseover", () => {
-      manaIcons.forEach((icon, index) => {
-        setTimeout(() => {
-          icon.style.transform = icon.classList.contains("mana-white") ? "translateX(-50%) scale(1.2)" : "scale(1.2)"
-        }, index * 100)
-      })
-    })
-
-    manaPentagram.addEventListener("mouseout", () => {
-      manaIcons.forEach((icon) => {
-        icon.style.transform = icon.classList.contains("mana-white") ? "translateX(-50%)" : ""
+        if (isVisible) {
+          card.style.opacity = "1"
+          card.style.transform = "translateY(0)"
+        }
       })
     })
   }

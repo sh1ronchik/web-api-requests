@@ -5,8 +5,8 @@
     <link rel="icon" type="image/svg+xml" href="/web-api-requests/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MTG Card Explorer</title>
-    <script type="module" crossorigin src="/web-api-requests/assets/index-CjHvbHY9.js"></script>
-    <link rel="stylesheet" crossorigin href="/web-api-requests/assets/index-DTSQXMO9.css">
+    <script type="module" crossorigin src="/web-api-requests/assets/index-BOxG8rNV.js"></script>
+    <link rel="stylesheet" crossorigin href="/web-api-requests/assets/index-C9mpJYq_.css">
   </head>
   <body>
     <div id="app">
@@ -20,12 +20,14 @@
       </div>
       
       <header class="header">
-        <div class="planeswalker-symbol">
-          <div class="planeswalker-inner"></div>
-        </div>
-        <div class="title-container">
-          <h1 class="main-title">Magic: The Gathering</h1>
-          <div class="subtitle">Card Explorer</div>
+        <div class="header-content">
+          <div class="planeswalker-symbol">
+            <div class="planeswalker-inner"></div>
+          </div>
+          <div class="title-container">
+            <h1 class="main-title">Magic: The Gathering</h1>
+            <div class="subtitle">Card Explorer</div>
+          </div>
         </div>
         
         <div class="search-container">
@@ -83,42 +85,95 @@
       </header>
       
       <main class="main-content">
-        <div class="card-collection">
-          <div class="collection-header">
-            <h2>Card Collection</h2>
-            <div id="cardCount" class="card-count">0 cards</div>
-          </div>
-          
-          <div class="card-grid-container">
-            <div id="loadingIndicator" class="loading-indicator">
-              <div class="loading-spinner">
-                <div class="spinner-segment"></div>
-                <div class="spinner-segment"></div>
-                <div class="spinner-segment"></div>
-                <div class="spinner-segment"></div>
-                <div class="spinner-segment"></div>
-              </div>
-              <span>Summoning cards from the multiverse...</span>
+        <div class="layout-container">
+          <!-- Card Collection Panel -->
+          <div class="card-collection">
+            <div class="collection-header">
+              <h2>Card Collection</h2>
+              <div id="cardCount" class="card-count">0 cards</div>
             </div>
             
-            <div id="cardGrid" class="card-grid"></div>
+            <div class="card-grid-container">
+              <div id="loadingIndicator" class="loading-indicator">
+                <div class="loading-spinner">
+                  <div class="spinner-segment"></div>
+                  <div class="spinner-segment"></div>
+                  <div class="spinner-segment"></div>
+                  <div class="spinner-segment"></div>
+                  <div class="spinner-segment"></div>
+                </div>
+                <span>Summoning cards from the multiverse...</span>
+              </div>
+              
+              <div id="cardGrid" class="card-grid"></div>
+              
+              <div class="pagination-controls">
+                <button id="loadMoreBtn" class="load-more-btn">Load More Cards</button>
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div id="cardViewer" class="card-viewer">
-          <div class="card-viewer-placeholder">
-            <div class="card-placeholder-icon"></div>
-            <p>Select a card to view details</p>
+          
+          <!-- Card Detail Panel -->
+          <div id="cardViewer" class="card-viewer">
+            <div class="card-viewer-placeholder">
+              <div class="card-placeholder-icon"></div>
+              <p>Select a card to view details</p>
+            </div>
           </div>
         </div>
       </main>
       
+      <!-- Full-size Card Modal -->
       <div id="cardModal" class="card-modal">
         <div class="card-modal-content">
           <div class="card-modal-close">&times;</div>
           <div id="cardModalContent"></div>
         </div>
       </div>
+      
+      <!-- Card Detail Template (hidden) -->
+      <template id="cardDetailTemplate">
+        <div class="card-detail-container">
+          <div class="card-detail-header">
+            <div class="card-detail-bg"></div>
+            <div class="card-detail-title">
+              <h1 class="card-name-display"></h1>
+              <div class="card-type-display"></div>
+            </div>
+          </div>
+          
+          <div class="card-detail-body">
+            <div class="card-detail-image-wrapper">
+              <div class="card-detail-image">
+                <div class="card-frame-3d">
+                  <div class="card-frame-inner">
+                    <img class="card-frame-img" alt="" />
+                  </div>
+                  <div class="card-frame-glow"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card-detail-info">
+              <div class="card-info-section">
+                <h3>Card Text</h3>
+                <div class="card-text-content"></div>
+                <div class="card-flavor-text"></div>
+              </div>
+              
+              <div class="card-info-section">
+                <h3>Card Details</h3>
+                <div class="card-meta-grid"></div>
+              </div>
+              
+              <div class="card-info-section">
+                <h3>Actions</h3>
+                <div class="card-actions"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
       
       <footer class="footer">
         <div class="footer-content">
